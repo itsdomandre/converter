@@ -5,7 +5,7 @@ const app = express();
 const port = 5000;
 
 app.use(cors({
-  origin: 'http://192.168.1.70:3000',  // Permitir requisições do frontend (localhost)
+  origin: 'http://192.168.1.70:3000',
 }));
 
 app.use(express.json());
@@ -15,7 +15,6 @@ app.post('/download', async (req, res) => {
   const videoUrl = req.body.url;
 
   try {
-    // Usar youtube-dl-exec para pegar o áudio
     const info = await ytdl(videoUrl, {
       extractAudio: true,
       audioFormat: 'mp3',
@@ -27,7 +26,8 @@ app.post('/download', async (req, res) => {
     res.header('Content-Disposition', `attachment; filename="${fileName}"`);
     res.header('Content-Type', 'audio/mpeg');
 
-    res.send(info._filename);
+    const audioStream = ytdl(videoUrl, { filter: 'audioonly' });
+    audioStream.pipe(res);
   } catch (error) {
     console.error('Erro ao baixar vídeo:', error.message || error);
     res.status(500).send(`Erro ao processar o vídeo: ${error.message || error}`);
