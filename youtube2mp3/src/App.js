@@ -21,8 +21,10 @@ function App() {
 
       const blob = new Blob([response.data], { type: 'audio/mpeg' });
       const link = document.createElement('a');
+      
+      // Definir nome fixo para o arquivo
+      link.download = 'download-converted.mp3';  // Nome fixo para o arquivo
       link.href = URL.createObjectURL(blob);
-      link.download = response.headers['content-disposition'].split('=')[1].replace(/"/g, '');
       link.click();
     } catch (err) {
       setError(`Ocorreu um erro: ${err.message || err}`);
