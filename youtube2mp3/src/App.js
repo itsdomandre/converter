@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import './App.css'; // Importando o CSS
+import './App.css';
 
 function App() {
   const [url, setUrl] = useState('');
@@ -18,15 +18,14 @@ function App() {
 
     try {
       const response = await axios.post('http://localhost:5000/download', { url }, { responseType: 'blob' });
-      
-      // Cria o link para o download
+
       const blob = new Blob([response.data], { type: 'audio/mpeg' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.download = response.headers['content-disposition'].split('=')[1].replace(/"/g, '');
       link.click();
     } catch (err) {
-      setError('Ocorreu um erro ao tentar converter o vídeo. Tente novamente.');
+      setError(`Ocorreu um erro: ${err.message || err}`);
     }
 
     setLoading(false);
