@@ -26,19 +26,28 @@ app.post('/download', (req, res) => {
   res.header('Content-Disposition', 'attachment; filename="download-converted.mp3"');
   res.header('Content-Type', 'audio/mpeg');
 
-  // O yt-dlp vai enviar o áudio para a saída padrão, que vamos enviar para o cliente
-  ytDlp.stdout.pipe(res);
-
-  // Tratar erro se ocorrer
+  // Verifica se o yt-dlp falhou
   ytDlp.on('error', (err) => {
     console.error('Erro ao executar yt-dlp:', err);
-    res.status(500).send('Erro ao processar o vídeo.');
+    if (!res.headersSent) {
+      res.status(500).send('Erro ao processar o vídeo.');
+    }
   });
 
-  // Tratar caso o processo termine com erro
+  // Verifica se o yt-dlp terminou com erro
   ytDlp.on('exit', (code) => {
-    if (code !== 0) {
+    if (code !== 0 && !res.headersSent) {
       console.error(`yt-dlp terminou com erro. Código: ${code}`);
+      res.status(500).send('Erro ao processar o vídeo.');
+    }
+  });
+
+  // Envia o stream de áudio para a resposta apenas se não houver erro
+  ytDlp.stdout.pipe(res);
+
+  // Tratando o caso de erro se não houver dados
+  ytDlp.on('close', (code) => {
+    if (code !== 0 && !res.headersSent) {
       res.status(500).send('Erro ao processar o vídeo.');
     }
   });
