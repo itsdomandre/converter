@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import './App.css'; // Importando o CSS
 
 function App() {
   const [url, setUrl] = useState('');
@@ -41,9 +42,10 @@ function App() {
         onChange={(e) => setUrl(e.target.value)}
       />
       <button onClick={handleDownload} disabled={loading}>
-        {loading ? 'Carregando...' : 'Baixar MP3'}
+        {loading ? 'Processando...' : 'Baixar MP3'}
       </button>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p className="error">{error}</p>}
+      {loading && <p className="loading">Por favor, aguarde...</p>}
     </div>
   );
 }
