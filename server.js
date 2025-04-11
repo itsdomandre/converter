@@ -14,7 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 app.post('/download', (req, res) => {
   const videoUrl = req.body.url;
 
-  // Usando o yt-dlp para baixar apenas o áudio em MP3
+  // Usando o yt-dlp para baixar o áudio em MP3
   const ytDlp = spawn('yt-dlp', [
     '-x', // Extrair o áudio
     '--audio-format', 'mp3', // Converter para MP3
