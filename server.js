@@ -15,11 +15,12 @@ app.post('/download', async (req, res) => {
   const videoUrl = req.body.url;
 
   try {
-    // Usando o yt-dlp para baixar apenas o áudio em formato mp3
+    // Usar yt-dlp para baixar o áudio em formato mp3
     const info = await ytdl(videoUrl, {
       extractAudio: true,
       audioFormat: 'mp3',
       output: '%(title)s.%(ext)s',
+      quiet: true,  // Para suprimir logs desnecessários
     });
 
     const fileName = "download-converted.mp3";
@@ -27,15 +28,17 @@ app.post('/download', async (req, res) => {
     res.header('Content-Disposition', `attachment; filename="${fileName}"`);
     res.header('Content-Type', 'audio/mpeg');
 
+    // Passando o stream diretamente para a resposta
     const audioStream = ytdl(videoUrl, {
       extractAudio: true,
       audioFormat: 'mp3',
       output: '%(title)s.%(ext)s',
+      quiet: true,
     });
-    audioStream.pipe(res);
+
+    audioStream.pipe(res);  // Envia o arquivo de áudio diretamente para o cliente
   } catch (error) {
     console.error('Erro ao baixar vídeo:', error.message || error);
-    console.error('Detalhes do erro:', error); 
     res.status(500).send(`Erro ao processar o vídeo: ${error.message || error}`);
   }
 });
