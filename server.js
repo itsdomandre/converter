@@ -1,34 +1,33 @@
 const express = require('express');
-const ytdl = require('ytdl-core');
+const ytdl = require('youtube-dl-exec');
 const cors = require('cors');
 const app = express();
 const port = 5000;
 
 app.use(cors({
-    origin: 'http://192.168.1.70:3000',
-  }));
+  origin: 'http://192.168.1.70:3000',  // Permitir requisições do frontend (localhost)
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 
 app.post('/download', async (req, res) => {
   const videoUrl = req.body.url;
 
-  if (!ytdl.validateURL(videoUrl)) {
-    return res.status(400).send('URL inválida do YouTube');
-  }
-
   try {
-    const info = await ytdl.getInfo(videoUrl);
-    console.log('Informações do vídeo:', info.videoDetails.title);
+    // Usar youtube-dl-exec para pegar o áudio
+    const info = await ytdl(videoUrl, {
+      extractAudio: true,
+      audioFormat: 'mp3',
+      output: '%(title)s.%(ext)s',
+    });
 
-    const audioStream = ytdl(videoUrl, { filter: 'audioonly' });
-    const fileName = `${info.videoDetails.title}.mp3`.replace(/[\/\\?%*:|"<>\.]/g, '-');
+    const fileName = `${info.title}.mp3`.replace(/[\/\\?%*:|"<>\.]/g, '-');
 
     res.header('Content-Disposition', `attachment; filename="${fileName}"`);
     res.header('Content-Type', 'audio/mpeg');
 
-    audioStream.pipe(res);
+    res.send(info._filename);
   } catch (error) {
     console.error('Erro ao baixar vídeo:', error.message || error);
     res.status(500).send(`Erro ao processar o vídeo: ${error.message || error}`);
