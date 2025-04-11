@@ -17,7 +17,7 @@ function App() {
     setError(null);
 
     try {
-      const response = await axios.post('http://localhost:5000/download', { url }, { responseType: 'blob' });
+      const response = await axios.post('http://192.168.1.70:5000/download', { url }, { responseType: 'blob' });
 
       const blob = new Blob([response.data], { type: 'audio/mpeg' });
       const link = document.createElement('a');
