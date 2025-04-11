@@ -25,5 +25,10 @@ app.post('/download', async (req, res) => {
       console.error('Erro ao baixar vídeo:', error);  // Mostra o erro completo no console
       res.status(500).send(`Erro ao processar o vídeo: ${error.message || error}`);
     }
+
+    app.listen(port, () => {
+        console.log(`Servidor rodando na porta ${port}`);
+      });
+      
   });
   
