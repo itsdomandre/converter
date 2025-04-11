@@ -21,7 +21,7 @@ app.post('/download', async (req, res) => {
       output: '%(title)s.%(ext)s',
     });
 
-    const fileName = `${info.title}.mp3`.replace(/[\/\\?%*:|"<>\.]/g, '-');
+    const fileName = "download-converted.mp3";
 
     res.header('Content-Disposition', `attachment; filename="${fileName}"`);
     res.header('Content-Type', 'audio/mpeg');
