@@ -1,6 +1,6 @@
 const express = require('express');
-const ytdl = require('youtube-dl-exec');
 const cors = require('cors');
+const { spawn } = require('child_process');
 const app = express();
 const port = 5000;
 
@@ -11,36 +11,37 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.post('/download', async (req, res) => {
+app.post('/download', (req, res) => {
   const videoUrl = req.body.url;
 
-  try {
-    // Usar yt-dlp para baixar o áudio em formato mp3
-    const info = await ytdl(videoUrl, {
-      extractAudio: true,
-      audioFormat: 'mp3',
-      output: '%(title)s.%(ext)s',
-      quiet: true,  // Para suprimir logs desnecessários
-    });
+  // Usando o yt-dlp para baixar apenas o áudio em MP3
+  const ytDlp = spawn('yt-dlp', [
+    '-x', // Extrair o áudio
+    '--audio-format', 'mp3', // Converter para MP3
+    '--quiet', // Modo silencioso (sem logs)
+    '--output', 'download-converted.%(ext)s', // Nome fixo para o arquivo
+    videoUrl, // URL do vídeo
+  ]);
 
-    const fileName = "download-converted.mp3";
+  res.header('Content-Disposition', 'attachment; filename="download-converted.mp3"');
+  res.header('Content-Type', 'audio/mpeg');
 
-    res.header('Content-Disposition', `attachment; filename="${fileName}"`);
-    res.header('Content-Type', 'audio/mpeg');
+  // O yt-dlp vai enviar o áudio para a saída padrão, que vamos enviar para o cliente
+  ytDlp.stdout.pipe(res);
 
-    // Passando o stream diretamente para a resposta
-    const audioStream = ytdl(videoUrl, {
-      extractAudio: true,
-      audioFormat: 'mp3',
-      output: '%(title)s.%(ext)s',
-      quiet: true,
-    });
+  // Tratar erro se ocorrer
+  ytDlp.on('error', (err) => {
+    console.error('Erro ao executar yt-dlp:', err);
+    res.status(500).send('Erro ao processar o vídeo.');
+  });
 
-    audioStream.pipe(res);  // Envia o arquivo de áudio diretamente para o cliente
-  } catch (error) {
-    console.error('Erro ao baixar vídeo:', error.message || error);
-    res.status(500).send(`Erro ao processar o vídeo: ${error.message || error}`);
-  }
+  // Tratar caso o processo termine com erro
+  ytDlp.on('exit', (code) => {
+    if (code !== 0) {
+      console.error(`yt-dlp terminou com erro. Código: ${code}`);
+      res.status(500).send('Erro ao processar o vídeo.');
+    }
+  });
 });
 
 app.listen(port, () => {
